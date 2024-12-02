@@ -72,6 +72,7 @@ load_stra_stat(token, load_path, cache_path,
 
 print(f'统计耗时：{time.time()-t1:.2f}s')
 
-t2 = time.time()
-get_stat_analysis(cache_path, trading_days, ts_period=3)
-print(f'分析耗时：{time.time()-t2:.2f}s')
+# t2 = time.time()
+
+# get_stat_analysis(cache_path, trading_days, ts_period=3)
+# print(f'分析耗时：{time.time()-t2:.2f}s')

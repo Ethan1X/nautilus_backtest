@@ -6,7 +6,8 @@ import time
 from .stat_data import *
 from .stat_func import *
 from .stat_indicator import Indicators
-from .report2pdf import Report2Pdf
+from .report2pdf_cell import Report2Pdf
+from .report2pdf_all import Report2PdfAll
 
 
 ####################################################
@@ -28,8 +29,11 @@ def plot_from_npz(plot_config, npz_path, run_dir=None, period="all", plot_title=
     
     # draw_stat_plot_html(symbol_info, stat_info, price_npz, balance_npz, net_value_npz, hedge_npz, signal_npz, plot_config, run_dir, period, plot_title, interval)
 
-    report_png = Report2Pdf()
-    report_png.draw_stat_plot_png(symbol_info, stat_info, price_npz, balance_npz, net_value_npz, hedge_npz, signal_npz, plot_config, run_dir, period, plot_title, interval)
+    # report_cell = Report2Pdf()
+    # report_cell.draw_stat_plot(symbol_info, stat_info, price_npz, balance_npz, net_value_npz, hedge_npz, signal_npz, plot_config, run_dir, period, plot_title, interval)
+
+    report_all = Report2PdfAll()
+    report_all.draw_stat_plot(symbol_info, stat_info, price_npz, balance_npz, net_value_npz, hedge_npz, signal_npz, plot_config, run_dir, period, plot_title, interval)
 
 
 class StrategyStatsRecord(object):

@@ -5,7 +5,9 @@ import os
 import time
 import pandas  as pd
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import plotly.graph_objects as go
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -46,16 +48,16 @@ def convert_balance_in_time(balance_list):
     return balance_in_time_list
 
 
-class Report2Pdf():
+class Report2PdfAll():
     def __init__(self):
         super().__init__()
 
-    def draw_stat_plot_png(self, symbol_info, stat_info, market_price_list, balance_list, net_value_list, hedge_list, signal_list, config: dict, run_dir: str, period='all', plot_title='trade_pnl_anlyse', interval=1):
+    def draw_stat_plot(self, symbol_info, stat_info, market_price_list, balance_list, net_value_list, hedge_list, signal_list, config: dict, run_dir: str, period='all', plot_title='trade_pnl_anlyse', interval=1):
         self.run_dir = run_dir
         self.plt_save_path = os.path.join(self.run_dir, 'report')
         os.makedirs(self.plt_save_path, exist_ok=True)
 
-        self.PDF = PdfPages(self.plt_save_path)
+        PDF = PdfPages( os.path.join(self.plt_save_path, 'backtest.pdf') )
 
         data = {
             "stat_info": stat_info,
@@ -67,46 +69,116 @@ class Report2Pdf():
         }
 
         if config.get("net_value", False):
-            self.draw_net_value(self.PDF, data['net_value_list'], interval)
+            net_value_ts, net_value, NetValue_name = self.draw_net_value(data['net_value_list'], interval)
 
         if config.get("position", False):
-            self.draw_position(data['market_prices'], data['balance_in_time'], interval)
+            price_plot_list, position_plot_list = self.draw_position(data['market_prices'], data['balance_in_time'], interval)
+            price_ts, price_value, Price_name = price_plot_list
+            balance_ts, balance_value, Position_name = position_plot_list
 
         # 暂时没有
         if config.get("hedge", False):
             self.draw_order_mark(data['hedge_list'], config["hedge"].get("type_list"))
 
         if config.get("stat_metrics", False):
-            fig = self.draw_stat_metrics(fig, data['stat_info'], symbol_info, balance_list["token_capital"][0], 
-                                         balance_list["token_capital"][-1], balance_list["quote_capital"][0], 
-                                         balance_list["quote_capital"][-1],
-                                        )
+            metrics_list = self.draw_stat_metrics(data['stat_info'], 
+                                                symbol_info, 
+                                                balance_list["token_capital"][0], 
+                                                balance_list["token_capital"][-1], 
+                                                balance_list["quote_capital"][0], 
+                                                balance_list["quote_capital"][-1],
+                                                )
+            metrics_balence, metrics_nocommissions, metrics_commissions, metrics_return = metrics_list
         
         # 暂时没有
         if config.get("signal", False):
             self.draw_signal(data['signal_list'])
 
-        # todo：
-        # 保留 interval 功能，拆分成为单独html文件
-        # 单独文件可选择，单独html 或者单独 png
-        # png考虑成为一个整个页面
-        if plot_title is None:
-            plot_title = 'trade_pnl_analyse'
-        html_filename = os.path.join(self.run_dir, f"{plot_title}_{period}.html")
+        FONTSIZE = 12
+        ration = 90
+        xlabel_fontsize = 9
+        
+        plt.figure(figsize=(24, 12))
+        gs = gridspec.GridSpec(2, 10)  # 定义2行6列的网格
+        
+        ###### 第1行  ######
+        # 第一个子图 (0, 0) 在第一行左侧，占用3列
+        ax1 = plt.subplot(gs[0, 0:5])
+        ax1.plot(net_value_ts, net_value, label=NetValue_name, color='#FF6347', alpha=1.0)  # 绘制折线图
+        ax1.set_title(NetValue_name, fontsize=FONTSIZE)
+        ax1.set_xlabel('DateTime')
+        ax1.set_ylabel(NetValue_name)
 
-        # html_filename = "Plotly_Net_Worth_Curve.html"
-        # fig.write_html(html_filename)
-        print(f"Plotly plot saved to {html_filename}")
+        # 第二个子图 (0, 2) 在第一行中间，占用3列
+        ax2 = plt.subplot(gs[0, 5:])
+        ax2.plot(price_ts, price_value, label=Price_name, color='#1f77b4', alpha=1.0)  # 绘制折线图
+        ax2.set_title(Price_name, fontsize=FONTSIZE)
+        ax2.set_xlabel('DateTime')
+        ax2.set_ylabel(Price_name)
+
+        ###### 第2行  ######
+        # 第一个子图
+        ax3 = plt.subplot(gs[1, 0:5])
+        ax3.plot(balance_ts, balance_value, label=Position_name, color='#1f77b4', alpha=1.0)  # 绘制折线图
+        ax3.set_title(Position_name, fontsize=FONTSIZE)
+        ax3.set_xlabel('DateTime')
+        ax3.set_ylabel(Position_name)
+
+        # 第二个字图 表格
+        metrics_balence, metrics_nocommissions, metrics_commissions, metrics_return
+
+        columns = len(metrics_balence)
+        metrics_balence_list = list(metrics_balence.items())
+        metrics_return_list = list(metrics_return.items())
+        metrics_nocommissions_list = list(metrics_nocommissions.items())
+        metrics_commissions_list = list(metrics_commissions.items())
+        
+        ax4 = plt.subplot(gs[1, 5:])
+        ax4.axis('off')  # 隐藏轴
+        data_row_0 = [ [metrics_balence_list[i][0], 
+                  metrics_balence_list[i][1], 
+                  metrics_return_list[i][0], 
+                  metrics_return_list[i][1]] for i in range(columns) ]
+        
+        data_row_1 = [ [metrics_nocommissions_list[i][0], 
+                  metrics_nocommissions_list[i][1], 
+                  metrics_commissions_list[i][0], 
+                  metrics_commissions_list[i][1]] for i in range(columns) ]
+        
+        data = data_row_0 + data_row_1
+        table = ax4.table(cellText=data, loc='center')
+        table.auto_set_font_size(False)
+        table.set_fontsize(8)
+        table.scale(1.0, 1.0)
+
+        # 自动调整每列宽度以适应内容
+        if hasattr(table, 'auto_set_column_width'):
+            table.auto_set_column_width(col=[0, 1])
+        
+        # 手动调整行高
+        for (i, j), cell in table.get_celld().items():
+            if i == 0:  # Header
+                cell.set_height(0.07)  # 设置表头行高
+            else:
+                cell.set_height(0.07)  # 设置其他行高
+            cell.set_text_props(ha='left')  # 右对齐
+
+        plt.subplots_adjust(wspace=1.0, hspace=1.0)  # 全局间距调节
+        plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)  # 调整边距
+
+        PDF.savefig(bbox_inches='tight', dpi=300)
+        PDF.close()
+
+        print(f"PDF Report saved to {self.plt_save_path}")
 
         return
     
-    def draw_net_value(self, PDF, net_value_list, interval=1):
+    def draw_net_value(self, net_value_list, interval=1):
         vectorized_function = np.vectorize(convert_ts)
         net_value_ts = vectorized_function(net_value_list['ts'])[::interval]
         net_value = (net_value_list['net_value'] - net_value_list['net_value'][0])[::interval]
 
-        # 净值
-        self.ploty_png(net_value_ts, net_value, 'Net_Worth_Curve', ewm=False)
+        return net_value_ts, net_value, 'Net_Worth_Curve'
     
     def draw_position(self, market_prices, balance_in_time, interval=1):
         vectorized_function = np.vectorize(convert_ts)
@@ -117,10 +189,7 @@ class Report2Pdf():
         balance_ts = vectorized_function(balance_in_time['ts'])[::interval]
         balance_value = balance_in_time['position'][::interval]
 
-        # 价格变化
-        self.ploty_png(price_ts, price_value, 'Price', ewm=False)
-        # 仓位变化
-        self.ploty_png(balance_ts, balance_value, 'Position', ewm=False)
+        return [price_ts, price_value, 'Price'], [balance_ts, balance_value, 'Position']
     
     def draw_order_mark(self, hedge_list, type_list):
         # 开平仓信号点
@@ -162,8 +231,8 @@ class Report2Pdf():
             #         secondary_y=False,
             #     )
     
-    def draw_stat_metrics(self, fig, stat_info, symbol, start_token, end_token, start_quote, end_quote):
-        metrics = {
+    def draw_stat_metrics(self, stat_info, symbol, start_token, end_token, start_quote, end_quote):
+        metrics_balence = {
             # balance
             "Starting Balance(U)": f'{symbol["token"]}: {start_token:.3f}; {symbol["quote"]}: {start_quote:.3f}',
             "Ending Balance(U)": f'{symbol["token"]}: {end_token:.3f}; {symbol["quote"]}: {end_quote:.3f}',
@@ -176,22 +245,8 @@ class Report2Pdf():
             'Daily Turnover Rate(%)': stat_info["daily_turnover_rate"],
             'Total Trading Value(U)': stat_info["total_trading_value"],
         }
-        _metrics = []
-        for key, value in metrics.items():
-            if isinstance(value, float):
-                _metrics.append(f'{key}: {value:.5f}')
-            else:
-                _metrics.append(f'{key}: {value}')
-        fig.add_annotation(
-                    # width=800,
-                    # height=100,
-                    text='<br>'.join(_metrics),
-                    xref='paper', yref='paper',
-                    x=0.0, y=-0.4, showarrow=False,
-                    font=dict(size=13),
-                    align="left",
-        )
-        metrics = {
+
+        metrics_nocommissions = {
             # win and loss indicator
             'Without Commissions': '',
             'Win Percentage(%)': stat_info["win_percentage_without_commission"],
@@ -203,22 +258,8 @@ class Report2Pdf():
             'Average Loss Percentage(%)': stat_info["average_loss_percentage_without_commission"],
             'Average Returns Percentage(%)': stat_info["average_returns_without_commission"],
         }
-        _metrics = []
-        for key, value in metrics.items():
-            if isinstance(value, float):
-                _metrics.append(f'{key}: {value:.5f}')
-            else:
-                _metrics.append(f'{key}: {value}')
-        fig.add_annotation(
-                    # width=800,
-                    # height=100,
-                    text='<br>'.join(_metrics),
-                    xref='paper', yref='paper',
-                    x=0.25, y=-0.4, showarrow=False,
-                    font=dict(size=13),
-                    align="left",
-        )
-        metrics = {
+
+        metrics_commissions = {
             # win and loss indicator
             'With Commissions': '',
             'Win Percentage(%)': stat_info["win_percentage_with_commission_without_zero"],
@@ -242,22 +283,8 @@ class Report2Pdf():
         #     'Average Loss Percentage(%)': stat_info["average_loss_percentage_with_commission_without_zero"],
         #     'Average Returns Percentage(%)': stat_info["average_returns_with_commission_without_zero"],
         # }
-        _metrics = []
-        for key, value in metrics.items():
-            if isinstance(value, float):
-                _metrics.append(f'{key}: {value:.5f}')
-            else:
-                _metrics.append(f'{key}: {value}')
-        fig.add_annotation(
-                    # width=800,
-                    # height=100,
-                    text='<br>'.join(_metrics),
-                    xref='paper', yref='paper',
-                    x=0.6, y=-0.4, showarrow=False,
-                    font=dict(size=13),
-                    align="left",
-        )
-        metrics = {
+
+        metrics_return = {
             # net worth value indicator
             'Total Returns(%)': stat_info["total_returns_rate"],
             'Annual Returns(%)': stat_info["annual_returns"],
@@ -270,22 +297,8 @@ class Report2Pdf():
             'Total Commissions(U)': stat_info["total_commissions"],
             'Total Gain/Loss(U)': end_quote - start_quote,
         }
-        _metrics = []
-        for key, value in metrics.items():
-            if isinstance(value, float):
-                _metrics.append(f'{key}: {value:.5f}')
-            else:
-                _metrics.append(f'{key}: {value}')
-        fig.add_annotation(
-                    # width=800,
-                    # height=100,
-                    text='<br>'.join(_metrics),
-                    xref='paper', yref='paper',
-                    x=1, y=-0.4, showarrow=False,
-                    font=dict(size=13),
-                    align="left",
-        )
-        return fig
+
+        return metrics_balence, metrics_nocommissions, metrics_commissions, metrics_return
     
     def draw_signal(self, signal_list, mode='markers'):
         name_list = signal_list['name']
@@ -348,8 +361,8 @@ class Report2Pdf():
         fig.tight_layout()
         plt.grid(True)
 
-        plt.savefig(os.path.join(self.plt_save_path, f"{title}.png"), dpi=300)
-        print(f'{file_name} plot png finished')
+        plt.savefig(os.path.join(self.plt_save_path, f"{title}.pdf"), dpi=300)
+        print(f'{file_name} plot finished')
 
 
 
