@@ -260,8 +260,8 @@ def matching_orders(order_index_list, order_data_list, symbol_info):
         _hedge_info_left = _calculate_hedge_metrics(symbol_type, _hedge_info_left)
         _hedge_list.append(_hedge_info_left)
 
-    
-    print(f'matching_orders _hedge_list: {_hedge_list}')
+    # print 内容很多
+    # print(f'matching_orders _hedge_list: {_hedge_list}')
     
     return _hedge_list
 
@@ -326,7 +326,7 @@ def calculate_net_value(balance_list, price_list, start_ts=None, end_ts=None):
     # print(net_value_list.ts_event)
 
     now_ts = start_ts
-    print(start_idx, data_size, balance_size)
+    # print(start_idx, data_size, balance_size)
     while (i < balance_size) and (j < data_size):
         balance = balance_list.get_at(i)
         price_info.set_data(price=price_list["mid_price"][j], tp=price_list["ts"][j])
