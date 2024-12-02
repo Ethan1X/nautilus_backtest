@@ -1,0 +1,7 @@
+etl
+catalog/**
+**/.ipynb_checkpoints/**
+**/__pycache__/**
+nautilus_reports/**
+*.csv
+*.log

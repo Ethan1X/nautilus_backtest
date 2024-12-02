@@ -1,0 +1,19 @@
+[common]
+token = "BTC"
+quote = "USDT"
+exchange = "BINANCE"
+
+[trade.spot_normal]
+market = "SPOT"
+commission_rate_maker = -0.00006
+commission_rate_taker = 0.00000
+
+[trade.swap_coin_forever]
+market = "SWAP_COIN"
+commission_rate_maker = -0.00006
+commission_rate_taker = 0.00018
+
+[trade.swap_forever]
+market = "SWAP"
+commission_rate_maker = -0.00006
+commission_rate_taker = 0.00018
