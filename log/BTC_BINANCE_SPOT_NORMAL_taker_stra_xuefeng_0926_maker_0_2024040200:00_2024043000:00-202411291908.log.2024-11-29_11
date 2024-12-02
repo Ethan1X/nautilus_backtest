@@ -1,0 +1,5 @@
+2024-11-29 13:09:57.895 taker_stra.py update_feature_data 626 INFO - 开始load: 2024-04-25 00:00:00+08:00 的信号
+2024-11-29 13:20:13.055 taker_stra.py update_feature_data 626 INFO - 开始load: 2024-04-26 00:00:00+08:00 的信号
+2024-11-29 13:31:41.402 taker_stra.py update_feature_data 626 INFO - 开始load: 2024-04-27 00:00:00+08:00 的信号
+2024-11-29 13:41:39.756 taker_stra.py update_feature_data 626 INFO - 开始load: 2024-04-28 00:00:00+08:00 的信号
+2024-11-29 13:51:45.235 taker_stra.py update_feature_data 626 INFO - 开始load: 2024-04-29 00:00:00+08:00 的信号
