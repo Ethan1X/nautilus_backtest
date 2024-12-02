@@ -1,0 +1,6 @@
+# [submodule "strategystats"]
+# 	path = strategystats
+# 	url = http://gitlab.51toupiao.app/deeptrading/strategystats.git
+# [submodule "dtanalyse"]
+# 	path = dtanalyse
+# 	url = http://gitlab.51toupiao.app/deeptrading/dtanalyse.git
