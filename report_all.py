@@ -31,14 +31,14 @@ base_path = f"./results/backtest_1129/{token}{quote}.{exchange}_{symbol_type}"
 # cache_path = f"./results/cache_taker_stra/{token}{quote}.{exchange}_{symbol_type}"
 
 bacth_start_time = pd.Timestamp("2024-04-02 00:00:00", tz="HONGKONG")
-batch_end_time = pd.Timestamp("2024-04-30 00:00:00", tz="HONGKONG")
-batch_file_paths = load_batch_file_paths(bacth_start_time, batch_end_time, base_path, factor_name, strategy_name, batch_period_days=7)
+batch_end_time = pd.Timestamp("2024-04-04 00:00:00", tz="HONGKONG")
+batch_file_paths = load_batch_file_paths(bacth_start_time, batch_end_time, base_path, factor_name, strategy_name, batch_period_days=1)
 print(batch_file_paths)
 path_str = f'{token}{quote}.{exchange}_{symbol_type}/{strategy_name}_{bacth_start_time.strftime("%Y%m%d%H:%M")}_{batch_end_time.strftime("%Y%m%d%H:%M")}_{factor_name}'
 
 # 指定时间段
 start_time = pd.Timestamp("2024-04-02 00:00:00", tz="HONGKONG")
-end_time = pd.Timestamp("2024-04-30 00:00:00", tz="HONGKONG")
+end_time = pd.Timestamp("2024-04-04 00:00:00", tz="HONGKONG")
 trading_days = (end_time - start_time).total_seconds() / 3600/ 24
 
 # 整合结果存储文件夹路径

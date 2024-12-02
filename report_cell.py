@@ -21,7 +21,7 @@ path_str = 'taker_stra_2024040200:00_2024040900:00_xuefeng_0926_1e-05_-1e-05_mak
 
 # 指定时间段
 start_time = pd.Timestamp("2024-04-02 00:00:00", tz="HONGKONG")
-end_time = pd.Timestamp("2024-04-09 00:00:00", tz="HONGKONG")
+end_time = pd.Timestamp("2024-04-02 06:00:00", tz="HONGKONG")
 trading_days = (end_time - start_time).total_seconds() / 3600/ 24
 # path_str = f'{token}{quote}.{exchange}_{symbol_type}/{strategy_name}_{start_time.strftime("%Y%m%d%H:%M")}_{end_time.strftime("%Y%m%d%H:%M")}_{factor_name}'
 
@@ -33,6 +33,7 @@ load_path = f'{base_path}/{path_str}'
 
 cache_path = f'{cache_path}/{path_str}'
 # cache_path = f'{cache_path}/maker_stra_v3_2024110600:00_2024111100:00_vinci_mixer_cls_0.5_0.5_maker_0_0.5'
+cache_path = f'{cache_path}/taker_stra_2024040200:00_2024040300:00_xuefeng_0926_1e-05_-1e-05_maker_0_1e-05'
 
 plot_config = {
     "market_prices": {
@@ -54,7 +55,7 @@ plot_config = {
 t1 = time.time()
 capital = get_capital_list(starting_balance)
 load_period_result(token, load_path, cache_path, start_time, end_time, capital, 
-                   plot_config, quote, exchange, symbol_type, interval=1, use_s3=False)  # interval画图采样
+                   plot_config, quote, exchange, symbol_type, interval=100, use_s3=False)  # interval画图采样
 print(f'统计耗时：{time.time()-t1:.2f}s')
 
 # t2 = time.time()
