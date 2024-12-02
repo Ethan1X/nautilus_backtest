@@ -141,7 +141,7 @@ class Indicators():
         sum_holding_time = 0
         win_vol, loss_vol = 0, 0
 
-        print(f'calculate_trading_indicators_without_commission _hedge_list: {self.hedge_list}')
+        # print(f'calculate_trading_indicators_without_commission _hedge_list: {self.hedge_list}')
 
         for hedge in self.hedge_list:
 
@@ -264,47 +264,60 @@ class Indicators():
 
     def calculate_all_indicators(self):
         # 汇总所有统计指标
+        print(' ***** calculate_trading_indicators_without_commission *****')
         self.calculate_trading_indicators_without_commission()  # 交易统计指标
+
+        print(' ***** calculate_trading_indicators_with_commission *****')
         self.calculate_trading_indicators_with_commission()  # 交易统计指标(考虑手续费)
 
         self.init_flag = True
         
         self.stat_info.trading_days = self.trading_days
 
+        print(' ***** calculate_daily_returns *****')
         self.calculate_daily_returns()  # 日度收益率
 
+        print(' ***** calculate_daily_win_rate *****')
         daily_win_rate = self.calculate_daily_win_rate()  # 日地胜率
         self.stat_info.daily_win_rate = daily_win_rate * 100
         
+        print(' ***** calculate_total_returns_rate *****')
         total_returns_rate = self.calculate_total_returns_rate()  # 总收益率
         self.stat_info.total_returns_rate = total_returns_rate * 100
         
+        print(' ***** calculate_annual_returns *****')
         annual_returns = self.calculate_annual_returns()  # 年化收益率
         self.stat_info.annual_returns = annual_returns * 100
         
+        print(' ***** calculate_maxdrawdown *****')
         maxdrawdown, maxdrawdown_rate, drawdown_interval = self.calculate_maxdrawdown()  # 最大回撤
         self.stat_info.maxdrawdown = maxdrawdown
         self.stat_info.maxdrawdown_rate = maxdrawdown_rate * 100
         self.stat_info.drawdown_interval = drawdown_interval
         
+        print(' ***** calculate_sharpe_ratio *****')
         sharpe_ratio = self.calculate_sharpe_ratio()  # 夏普比率
         self.stat_info.sharpe_ratio = sharpe_ratio * 100
-        
+
+        print(' ***** calculate_sortino_ratio *****')
         sortino_ratio = self.calculate_sortino_ratio()  # 下行风险比率
         self.stat_info.sortino_ratio = sortino_ratio * 100
         
+        print(' ***** calculate_calmar_ratio *****')
         calmar_ratio = self.calculate_calmar_ratio()  # 卡尔马比率
         self.stat_info.calmar_ratio = calmar_ratio * 100
         
+        print(' ***** calculate_turnover_rate *****')
         turnover_rate = self.calculate_turnover_rate()  # 换手率
         self.stat_info.turnover_rate = turnover_rate * 100
         
+        print(' ***** calculate_daily_turnover_rate *****')
         daily_turnover_rate = self.calculate_daily_turnover_rate()  # 换手率
         self.stat_info.daily_turnover_rate = daily_turnover_rate * 100
 
+        print(' ***** calculate_frequency_returns *****')
         freq_returns = self.calculate_frequency_returns()  # 给定频率下的收益率
 
-        
         # print(f'含手续费且盈利包含0：胜率：{self.stat_info.win_percentage_with_commission_with_zero:.3f}%；单次盈利率：{self.stat_info.average_win_percentage_with_commission_with_zero:.5f}%；')
 
         return self.stat_info, freq_returns

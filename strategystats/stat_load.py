@@ -37,11 +37,16 @@ def load_stra_record(token, load_path, start_time, end_time, starting_balance, c
     
     init_balance = initial_balance(symbol_info, starting_balance, start_time.value)
 
+    print(' ***** init_balance *****')
+
     stra_record = StrategyStatsRecord.from_npz(init_balance, load_path, start_time, end_time)
+
+    print(' ***** from_npz *****')
     
     # indicator_info = stra_record.indicators
 
     stra_record.statistics(cache_path)
+
 
     # os.makedirs(cache_path, exist_ok=True)
     

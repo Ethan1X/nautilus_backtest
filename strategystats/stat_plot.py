@@ -1,21 +1,22 @@
-from collections import defaultdict
 
+
+
+import os
+import sys
+import tomli
+import tomli_w
 import pandas  as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import os
-import time
-import tomli
-import tomli_w
+from collections import defaultdict
 from .stat_data import *
-import sys
 
 if '.' not in sys.path:
     sys.path.append('./dtanalyse/')
-
 from util.load_s3_data import LoadS3Data
 from datetime import datetime, timedelta
+
 
 def convert_ts(ts, adjust_time_zone=8):
     ts_ = ts_to_second(ts) + adjust_time_zone * 3600
@@ -242,7 +243,7 @@ def draw_stat_metrics(fig, stat_info, symbol, start_token, end_token, start_quot
     )
     return fig
 
-def draw_stat_plot(symbol_info, stat_info, market_price_list, balance_list, net_value_list, hedge_list, order_list, config: dict, run_dir: str, period: str, plot_title='trade_pnl_anlyse', interval=1):
+def draw_stat_plot_html(symbol_info, stat_info, market_price_list, balance_list, net_value_list, hedge_list, order_list, config: dict, run_dir: str, period: str, plot_title='trade_pnl_anlyse', interval=1):
     data = {
         "stat_info": stat_info,
         "market_prices": market_price_list,
@@ -289,6 +290,9 @@ def draw_stat_plot(symbol_info, stat_info, market_price_list, balance_list, net_
                                balance_list["quote_capital"][0], balance_list["quote_capital"][-1])
 
     # todo：保存文件或者显示
+    # 保留现有，单独 html 保存
+    # html 和 png 两种模式
+    # png 的报告模式
     if plot_title is None:
         plot_title = 'trade_pnl_anlyse'
     html_filename = os.path.join(run_dir, f"{plot_title}_{period}.html")
@@ -297,6 +301,66 @@ def draw_stat_plot(symbol_info, stat_info, market_price_list, balance_list, net_
     print(f"Plotly plot saved to {html_filename}")
 
     return
+
+def draw_stat_plot_png(symbol_info, stat_info, market_price_list, balance_list, net_value_list, hedge_list, order_list, config: dict, run_dir: str, period: str, plot_title='trade_pnl_anlyse', interval=1):
+    data = {
+        "stat_info": stat_info,
+        "market_prices": market_price_list,
+        "balance_list": balance_list,
+        "net_value_list": net_value_list,
+        "hedge_list": hedge_list,
+        "order_list": order_list,
+    }
+    fig = make_subplots(
+        rows=1, cols=1,
+        shared_xaxes=False,
+        vertical_spacing=0.1,
+        # subplot_titles=('Net Worth Curve and Price'), 
+        specs=[[{"secondary_y": True}]]
+    )
+    fig.update_layout(
+        title_text=f'{symbol_info["token"]} Trading Strategy Performance',
+        showlegend=True,
+        # margin=dict(t=100, b=300),
+        margin=dict(b=250),
+        # height=800,
+        # width=1400,
+        # xaxis=dict(
+        #     rangeslider=dict(
+        #         visible=True,
+        #         bgcolor='#c5c5c5',
+        #         bordercolor='#888888',
+        #         thickness=0.1,
+        #     ),
+        # ),
+    )
+    if config.get("market_prices", False):
+        fig = draw_price(fig, data['market_prices'], config["market_prices"].get("prices_list"), interval=1)
+    if config.get("net_value", False):
+        fig = draw_net_value(fig, data['net_value_list'], interval=1)
+    if config.get("position", False):
+        fig = draw_position(fig, data['balance_list'])
+    if config.get("hedge", False):
+        fig = draw_hedge(fig, data['hedge_list'], config["hedge"].get("type_list"))
+    if config.get("orders", False):
+            fig = draw_orders(fig, data['order_list'], config["orders"].get("status_list"))
+    if config.get("stat_metrics", False):
+        fig = draw_stat_metrics(fig, data['stat_info'], symbol_info, balance_list["token_capital"][0], balance_list["token_capital"][-1],
+                               balance_list["quote_capital"][0], balance_list["quote_capital"][-1])
+
+    # todo：保存文件或者显示
+    # 保留现有，单独 html 保存
+    # html 和 png 两种模式
+    # png 的报告模式
+    if plot_title is None:
+        plot_title = 'trade_pnl_anlyse'
+    html_filename = os.path.join(run_dir, f"{plot_title}_{period}.html")
+    # html_filename = "Plotly_Net_Worth_Curve.html"
+    fig.write_html(html_filename)
+    print(f"Plotly plot saved to {html_filename}")
+
+    return
+
 
 def price_from_s3(start_time, end_time, exchange, symbol):
     # begin_time = datetime.datetime(2024, 4, 19, 14, 30, tzinfo=TZ_8)
@@ -335,4 +399,7 @@ def plot_func(plot_config, npz_path, start_time, end_time, run_dir=None, plot_ti
     hedge_npz = np.load(f"{npz_path}/hedge.npz", allow_pickle=True)
     order_npz = np.load(f"{npz_path}/orders.npz", allow_pickle=True)
     price_list = price_from_s3(start_time, end_time, symbol_info['market_info']['exchange'].lower(), f'{symbol_info["token"]}_{symbol_info["quote"]}'.lower())
-    draw_stat_plot(symbol_info, stat_info, price_list, balance_npz, net_value_npz, hedge_npz, order_npz, plot_config, run_dir, period, plot_title, interval=1)
+
+    # draw_stat_plot_html(symbol_info, stat_info, price_list, balance_npz, net_value_npz, hedge_npz, order_npz, plot_config, run_dir, period, plot_title, interval=1)
+
+    draw_stat_plot_png(symbol_info, stat_info, price_list, balance_npz, net_value_npz, hedge_npz, order_npz, plot_config, run_dir, period, plot_title, interval=1)

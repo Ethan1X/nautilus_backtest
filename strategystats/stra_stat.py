@@ -6,7 +6,7 @@ import time
 from .stat_data import *
 from .stat_func import *
 from .stat_indicator import Indicators
-from .plot_func import draw_stat_plot
+from .report2pdf import Report2Pdf
 
 
 ####################################################
@@ -26,7 +26,10 @@ def plot_from_npz(plot_config, npz_path, run_dir=None, period="all", plot_title=
     hedge_npz = np.load(f"./{npz_path}/hedge.npz", allow_pickle=True)
     signal_npz = np.load(f"./{npz_path}/signal.npz", allow_pickle=True)
     
-    draw_stat_plot(symbol_info, stat_info, price_npz, balance_npz, net_value_npz, hedge_npz, signal_npz, plot_config, run_dir, period, plot_title, interval)
+    # draw_stat_plot_html(symbol_info, stat_info, price_npz, balance_npz, net_value_npz, hedge_npz, signal_npz, plot_config, run_dir, period, plot_title, interval)
+
+    report_png = Report2Pdf()
+    report_png.draw_stat_plot_png(symbol_info, stat_info, price_npz, balance_npz, net_value_npz, hedge_npz, signal_npz, plot_config, run_dir, period, plot_title, interval)
 
 
 class StrategyStatsRecord(object):
@@ -188,6 +191,7 @@ class StrategyStatsRecord(object):
             tomli_w.dump(symbol.to_dict(), f)
 
         # 存stat_info
+        print(' ***** calculate_all_indicators *****')
         stat_info, freq_returns = self.indicators.calculate_all_indicators()
         f = open(f"{run_dir}/stat_analysis_info.text", "w")
         print(f'年化夏普率: {stat_info.sharpe_ratio:.3f}%; 年化calmar比率: {stat_info.calmar_ratio:.3f}%; 单日胜率: {stat_info.daily_win_rate:.3f}%;')
@@ -195,6 +199,7 @@ class StrategyStatsRecord(object):
         print(f'不含手续费：胜率：{stat_info.win_percentage_without_commission:.3f}%；单次盈利率：{stat_info.average_win_percentage_without_commission:.5f}%；单次亏损率：{stat_info.average_loss_percentage_without_commission:.5f}%；总体单次盈亏率：{stat_info.average_returns_without_commission:.5f}%;')
         print(f'含手续费：胜率：{stat_info.win_percentage_with_commission_without_zero:.3f}%；单次盈利率：{stat_info.average_win_percentage_with_commission_without_zero:.5f}%；单次亏损率：{stat_info.average_loss_percentage_with_commission_without_zero:.5f}%；总体单次盈亏率：{stat_info.average_returns_with_commission_without_zero:.5f}%;')
         print(stat_info)
+
         with open(f"{run_dir}/stat_info.toml", "wb") as f:
             tomli_w.dump(stat_info.__dict__, f)
         freq_returns.to_csv(f"./{run_dir}/freq_returns.csv")

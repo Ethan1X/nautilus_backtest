@@ -385,7 +385,7 @@ if __name__ == "__main__":
     parser.add_argument('--exchange', type=str, default="BINANCE")
     parser.add_argument('--symbol_type', type=str, default="SPOT_NORMAL")
     parser.add_argument('--start_str', type=str, default="2024-04-02T00:00")
-    parser.add_argument('--end_str', type=str, default="2024-04-30T00:00")
+    parser.add_argument('--end_str', type=str, default="2024-04-4T00:00")
     parser.add_argument('--strategy_name', type=str, default="taker_stra")  # 'maker' 'taker'
     parser.add_argument('--is_latency', type=str, default='no')
     parser.add_argument('--stop_win_rate', type=float, default=0.0002)
@@ -428,7 +428,7 @@ if __name__ == "__main__":
     initlog('./log', log_name, log_level=logging.INFO)
     config['log_name'] = log_name
 
-    freq = 7
+    freq = 1
     for d in pd.date_range(start=start_time, end=end_time+timedelta(days=freq), freq=f'{freq}D'):
         start = d
         end = min(start + timedelta(days=freq), end_time)
@@ -444,7 +444,7 @@ if __name__ == "__main__":
     def run_backtest_process(config):
         run_backtest(config)
 
-    pool = multiprocessing.Pool(processes=2)
+    pool = multiprocessing.Pool(processes=7)
     try:
         results = pool.map(run_backtest_process, parameter_list)
     finally:
