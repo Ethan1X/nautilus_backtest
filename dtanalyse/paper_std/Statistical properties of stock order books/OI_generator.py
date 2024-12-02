@@ -1,0 +1,98 @@
+import os, sys, logging
+sys.path.append(os.getcwd().split('paper_std')[0])
+if '../' not in sys.path:
+    sys.path.append('../')
+
+from util.load_s3_data import LoadS3Data
+from util.time_method import *
+from data_generator import *
+from typing import TypedDict
+from feature import FeatureGenerator, FeatureConfig
+from util.hedge_log import initlog
+
+
+class OIGenerator(FeatureGenerator):
+    '''
+    利用ticker数据，生成订单不平衡（Order Imbalance）,不需要输入额外参数
+    '''
+
+    def __init__(self, config: FeatureConfig) -> None:
+        super().__init__(config)
+
+        self.fe_name = 'oi' 
+        self.previous_bid_volume = None  
+        self.previous_ask_volume = None
+        self.previous_bid_price = None  
+        self.previous_ask_price = None
+    def process(self, ticker: QuoteTick=None, trade: TradeTick=None, depth: OrderBook=None):
+        
+        if ticker == None:  #如果没有传来ticker数据，则不更新
+            return 
+        self.update(ticker)
+        feature_ret = self.calculate(ticker)
+
+        return feature_ret
+    
+    def update(self, ticker: QuoteTick):  
+        self.current_bid_volume = ticker.bid_size * ticker.bid_price
+        self.current_ask_volume = ticker.ask_size * ticker.ask_price
+        self.current_bid_price = ticker.bid_price
+        self.current_ask_price = ticker.ask_price
+        self.ts_event = ticker.ts_event
+        
+    def calculate(self, ticker: QuoteTick):
+
+        if self.previous_bid_volume is not None:
+            if self.current_bid_price == self.previous_bid_price:
+                delta_bid = self.current_bid_volume - self.previous_bid_volume
+            elif self.current_bid_price > self.previous_bid_price:
+                delta_bid = self.current_bid_volume
+            elif self.current_bid_price < self.previous_bid_price:
+                delta_bid = 0
+            
+            if self.current_ask_price == self.previous_ask_price:
+                delta_ask = self.current_ask_volume - self.previous_ask_volume
+            elif self.current_ask_price < self.previous_ask_price:
+                delta_ask = self.current_ask_volume
+            elif self.current_ask_price > self.previous_ask_price:
+                delta_ask = 0
+            
+            oi = delta_bid - delta_ask
+        else:
+            oi = None
+
+        self.previous_bid_volume = self.current_bid_volume
+        self.previous_ask_volume = self.current_ask_volume
+        self.previous_bid_price = self.current_bid_price
+        self.previous_ask_price = self.current_ask_price
+        
+        return [(self.fe_name, self.ts_event, oi)]
+
+
+if __name__ == '__main__':     
+    initlog(None, 'oi_feature.log', logging.INFO)
+    #不需要额外参数
+    oi_config = FeatureConfig()
+    print()
+
+    begin_time = datetime.datetime(2024, 3, 27, 21,tzinfo=TZ_8) # 要加一个tzinfo
+    end_time = datetime.datetime(2024, 3, 27, 21, 1,tzinfo=TZ_8)
+    exchange = 'binance'
+    symbol = 'btc_usdt'
+
+    ins = OIGenerator(oi_config)
+    fe_list = []
+
+    data_generator = get_data_generator(begin_time, end_time, exchange, symbol)
+    for idx, row in enumerate(data_generator):
+        if row[1] == 'ticker':
+            fe_list.append(ins.process(ticker=row[0]))
+        elif row[1] == 'depth':
+            fe_list.append(ins.process(depth=row[0]))
+        else:
+            fe_list.append(ins.process(trade=row[0]))
+
+        if idx > 10:
+            break
+    print(fe_list)
+  

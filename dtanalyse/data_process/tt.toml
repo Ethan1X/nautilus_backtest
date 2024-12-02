@@ -1,0 +1,18 @@
+# feature_path = "/data/jupyter/jungle/dtanalyse/feature_cal/feature_eth_02"
+feature_path = "/data/jiangzhe/notebooks/feats_res"
+res_path = "/data/dp-data/ModelDatas"
+symbol_str = "matic_usdt_uswap_binance"
+month_str = "2023_0701_0731"
+start_date = "20230701"
+days = 31
+
+merge = true
+refine = false
+refine_rate = 0.9
+seperated = true
+
+convert = false
+
+remove = false
+update = false
+

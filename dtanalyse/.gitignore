@@ -1,0 +1,5 @@
+*.pyc
+*.pxd
+*.csv
+*.ipynb_checkpoints*
+*.out
