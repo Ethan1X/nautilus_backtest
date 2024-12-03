@@ -45,7 +45,6 @@ from nautilus_trader.model.enums import OrderSide, AggressorSide, PositionSide, 
 
 
 # -------------------------------utils function--------------------------------- #
-
 def convert_timestamp(ts_event_ms, adjust_time_zone = 0): # ts_event_ms是毫秒
     ts_event_ms = ts_event_ms  + adjust_time_zone * 3600 * 1000
     event_time = datetime.fromtimestamp(ts_event_ms / 1000, timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
@@ -81,7 +80,6 @@ def iter_tool(data):
         
 
 # -------------------------------strategy module--------------------------------- #
-
 class MyStrategyConfig(StrategyConfig, frozen=True):
     instrument_id: InstrumentId
     starting_balance: list
