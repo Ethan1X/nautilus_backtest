@@ -31,14 +31,14 @@ base_path = f"./results/backtest_1129/{token}{quote}.{exchange}_{symbol_type}"
 # cache_path = f"./results/cache_taker_stra/{token}{quote}.{exchange}_{symbol_type}"
 
 bacth_start_time = pd.Timestamp("2024-04-02 00:00:00", tz="HONGKONG")
-batch_end_time = pd.Timestamp("2024-04-04 00:00:00", tz="HONGKONG")
+batch_end_time = pd.Timestamp("2024-04-03 00:00:00", tz="HONGKONG")
 batch_file_paths = load_batch_file_paths(bacth_start_time, batch_end_time, base_path, factor_name, strategy_name, batch_period_days=1)
 print(batch_file_paths)
 path_str = f'{token}{quote}.{exchange}_{symbol_type}/{strategy_name}_{bacth_start_time.strftime("%Y%m%d%H:%M")}_{batch_end_time.strftime("%Y%m%d%H:%M")}_{factor_name}'
 
 # 指定时间段
 start_time = pd.Timestamp("2024-04-02 00:00:00", tz="HONGKONG")
-end_time = pd.Timestamp("2024-04-04 00:00:00", tz="HONGKONG")
+end_time = pd.Timestamp("2024-04-03 00:00:00", tz="HONGKONG")
 trading_days = (end_time - start_time).total_seconds() / 3600/ 24
 
 # 整合结果存储文件夹路径
@@ -46,17 +46,19 @@ load_path = f'./results/backtest_batch/{path_str}'
 # load_path = './results/cache/BTCUSDT.BINANCE_SPOT_NORMAL/maker_stra_2024050200:00_2024063000:00_vinci_maker_label_0.5_0.5'
 
 # 指定时段结果缓存路径
-cache_path = f'./results/cache_taker_stra/{path_str}'
+cache_path = f'./results/cache_taker_stra/test/{path_str}'
 
 plot_config = {
-    "net_value": True,
-    "position": True,
-    "stat_metrics": True,
-    # "order_mark": {
-    #     "type_list": ["buy_to_open", "sell_to_close", "sell_to_open", "buy_to_close"]
-    # },
-    "holding_spot_value": False,
-}
+        "net_value": True,
+        "position": True,
+        "stat_metrics": True,
+        "hedge": False,
+        "order_mark": {
+            "type_list": ["buy_to_open", "sell_to_close", "sell_to_open", "buy_to_close"]
+        },
+        "signal": False,
+        "holding_spot_value": False,
+    }
 
 # 统计回测结果
 t1 = time.time()
@@ -65,10 +67,19 @@ capital = get_capital_list(starting_balance)
 #                start_time, end_time, starting_balance, 
 #                plot_config,quote, exchange, symbol_type)
 
-load_stra_stat(token, load_path, cache_path, 
-               batch_file_paths, start_time, end_time, 
-               capital, plot_config, quote, exchange, 
-               symbol_type, interval=100,)
+load_stra_stat(token, 
+               load_path, 
+               cache_path, 
+               batch_file_paths, 
+               start_time, 
+               end_time, 
+               capital, 
+               plot_config, 
+               quote, 
+               exchange, 
+               symbol_type, 
+               interval=100,
+               )
 
 print(f'统计耗时：{time.time()-t1:.2f}s')
 

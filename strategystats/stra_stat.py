@@ -198,10 +198,10 @@ class StrategyStatsRecord(object):
         print(' ***** calculate_all_indicators *****')
         stat_info, freq_returns = self.indicators.calculate_all_indicators()
         f = open(f"{run_dir}/stat_analysis_info.text", "w")
-        print(f'年化夏普率: {stat_info.sharpe_ratio:.3f}%; 年化calmar比率: {stat_info.calmar_ratio:.3f}%; 单日胜率: {stat_info.daily_win_rate:.3f}%;')
-        print(f'回测时长：{stat_info.trading_days:.2}天；总盈利：{stat_info.total_returns-stat_info.total_commissions:.3f}u；手续费：{stat_info.total_commissions:.3f}u；年化收益率：{stat_info.annual_returns:.3f}%；最大回撤率：{stat_info.maxdrawdown_rate:.3f}%；最大回撤时长：{stat_info.drawdown_interval:.3}h；日换手率：{stat_info.daily_turnover_rate:.3f}%；平均持仓时间：{stat_info.average_holding_time:.3f}s;')
-        print(f'不含手续费：胜率：{stat_info.win_percentage_without_commission:.3f}%；单次盈利率：{stat_info.average_win_percentage_without_commission:.5f}%；单次亏损率：{stat_info.average_loss_percentage_without_commission:.5f}%；总体单次盈亏率：{stat_info.average_returns_without_commission:.5f}%;')
-        print(f'含手续费：胜率：{stat_info.win_percentage_with_commission_without_zero:.3f}%；单次盈利率：{stat_info.average_win_percentage_with_commission_without_zero:.5f}%；单次亏损率：{stat_info.average_loss_percentage_with_commission_without_zero:.5f}%；总体单次盈亏率：{stat_info.average_returns_with_commission_without_zero:.5f}%;')
+        print(f'年化夏普率: {stat_info.sharpe_ratio:.3f}% | 年化calmar比率: {stat_info.calmar_ratio:.3f}% | 单日胜率: {stat_info.daily_win_rate:.3f}%;')
+        print(f'回测时长: {stat_info.trading_days:.2}天 | 总盈利:{stat_info.total_returns-stat_info.total_commissions:.3f}u | 手续费:{stat_info.total_commissions:.3f}u | 年化收益率: {stat_info.annual_returns:.3f}% | 最大回撤率:{stat_info.maxdrawdown_rate:.3f}% | 最大回撤时长:{stat_info.drawdown_interval:.3}h | 日换手率:{stat_info.daily_turnover_rate:.3f}% | 平均持仓时间:{stat_info.average_holding_time:.3f}s;')
+        print(f'不含手续费: \n胜率: {stat_info.win_percentage_without_commission:.3f}% | 单次盈利率: {stat_info.average_win_percentage_without_commission:.5f}% | 单次亏损率: {stat_info.average_loss_percentage_without_commission:.5f}% | 总体单次盈亏率:{stat_info.average_returns_without_commission:.5f}%;')
+        print(f'含手续费: \n胜率:{stat_info.win_percentage_with_commission_without_zero:.3f}% | 单次盈利率: {stat_info.average_win_percentage_with_commission_without_zero:.5f}% | 单次亏损率: {stat_info.average_loss_percentage_with_commission_without_zero:.5f}% | 总体单次盈亏率:{stat_info.average_returns_with_commission_without_zero:.5f}%;')
         print(stat_info)
 
         with open(f"{run_dir}/stat_info.toml", "wb") as f:

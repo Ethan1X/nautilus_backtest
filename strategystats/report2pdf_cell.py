@@ -72,7 +72,7 @@ class Report2Pdf():
 
         # 暂时没有
         if config.get("hedge", False):
-            self.draw_order_mark(data['hedge_list'], config["hedge"].get("type_list"))
+            self.draw_order_mark(data['hedge_list'], config["order_mark"].get("type_list"))
 
         # if config.get("stat_metrics", False):
         #     fig = self.draw_stat_metrics(fig, data['stat_info'], symbol_info, balance_list["token_capital"][0], 
@@ -84,10 +84,6 @@ class Report2Pdf():
         if config.get("signal", False):
             self.draw_signal(data['signal_list'])
 
-        # todo：
-        # 保留 interval 功能，拆分成为单独html文件
-        # 单独文件可选择，单独html 或者单独 png
-        # png考虑成为一个整个页面
         if plot_title is None:
             plot_title = 'trade_pnl_analyse'
         html_filename = os.path.join(self.run_dir, f"{plot_title}_{period}.html")
@@ -151,8 +147,16 @@ class Report2Pdf():
                         order_ts["buy_to_close"].append(convert_ts(ts_finish[fidx]))
                         order_price["buy_to_close"].append(avg_price_close[fidx])
 
-            # 仓位变化
-            # self.ploty_pdf(order_ts[type], order_price[type], 'type', ewm=False)
+            self.ploty_pdf(np.array(order_ts['sell_to_close']), 
+                           np.array(order_price['sell_to_close']), 
+                           'sell_to_close', 
+                           ewm=False,
+                           )
+            
+            for _type in type_list:
+                if type_list[_type]:
+                    print(f'{_type} is not none')
+
         
             # for type in type_list:
             #     fig.add_trace(

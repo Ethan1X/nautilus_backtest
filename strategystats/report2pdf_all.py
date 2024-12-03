@@ -78,7 +78,7 @@ class Report2PdfAll():
 
         # 暂时没有
         if config.get("hedge", False):
-            self.draw_order_mark(data['hedge_list'], config["hedge"].get("type_list"))
+            self.draw_order_mark(data['hedge_list'], config["order_mark"].get("type_list"))
 
         if config.get("stat_metrics", False):
             metrics_list = self.draw_stat_metrics(data['stat_info'], 
@@ -88,7 +88,7 @@ class Report2PdfAll():
                                                 balance_list["quote_capital"][0], 
                                                 balance_list["quote_capital"][-1],
                                                 )
-            metrics_balence, metrics_nocommissions, metrics_commissions, metrics_return = metrics_list
+            metrics_balance, metrics_nocommissions, metrics_commissions, metrics_return = metrics_list
         
         # 暂时没有
         if config.get("signal", False):
@@ -98,8 +98,8 @@ class Report2PdfAll():
         ration = 90
         xlabel_fontsize = 9
         
-        plt.figure(figsize=(24, 12))
-        gs = gridspec.GridSpec(2, 10)  # 定义2行6列的网格
+        plt.figure(figsize=(24, 14))
+        gs = gridspec.GridSpec(3, 10)  # 定义2行6列的网格
         
         ###### 第1行  ######
         # 第一个子图 (0, 0) 在第一行左侧，占用3列
@@ -124,31 +124,50 @@ class Report2PdfAll():
         ax3.set_xlabel('DateTime')
         ax3.set_ylabel(Position_name)
 
-        # 第二个字图 表格
-        metrics_balence, metrics_nocommissions, metrics_commissions, metrics_return
-
-        columns = len(metrics_balence)
-        metrics_balence_list = list(metrics_balence.items())
+        ###### 第3行  ######
+        # 第一个表格
+        metrics_balance_list = list(metrics_balance.items())
         metrics_return_list = list(metrics_return.items())
         metrics_nocommissions_list = list(metrics_nocommissions.items())
         metrics_commissions_list = list(metrics_commissions.items())
         
-        ax4 = plt.subplot(gs[1, 5:])
+        ax4 = plt.subplot(gs[2, 0:5])
         ax4.axis('off')  # 隐藏轴
-        data_row_0 = [ [metrics_balence_list[i][0], 
-                  metrics_balence_list[i][1], 
+        data_row_0 = [ [metrics_balance_list[i][0], 
+                  metrics_balance_list[i][1], 
                   metrics_return_list[i][0], 
-                  metrics_return_list[i][1]] for i in range(columns) ]
+                  metrics_return_list[i][1]] for i in range(len(metrics_balance)) ]
         
         data_row_1 = [ [metrics_nocommissions_list[i][0], 
                   metrics_nocommissions_list[i][1], 
                   metrics_commissions_list[i][0], 
-                  metrics_commissions_list[i][1]] for i in range(columns) ]
+                  metrics_commissions_list[i][1]] for i in range(len(metrics_commissions)) ]
+        data_row_1 = data_row_1 + [[' ', ' ', ' ', ' ']]
         
-        data = data_row_0 + data_row_1
-        table = ax4.table(cellText=data, loc='center')
+        table = ax4.table(cellText=data_row_0, loc='center')
         table.auto_set_font_size(False)
-        table.set_fontsize(8)
+        table.set_fontsize(9)
+        table.scale(1.0, 1.0)
+
+        # 自动调整每列宽度以适应内容
+        if hasattr(table, 'auto_set_column_width'):
+            table.auto_set_column_width(col=[0, 1])
+        
+        # 手动调整行高
+        height_num = 0.08
+        for (i, j), cell in table.get_celld().items():
+            if i == 0:  # Header
+                cell.set_height(height_num)  # 设置表头行高
+            else:
+                cell.set_height(height_num)  # 设置其他行高
+            cell.set_text_props(ha='left')
+
+        # 第二个表格
+        ax5 = plt.subplot(gs[2, 5:])
+        ax5.axis('off')  # 隐藏轴
+        table = ax5.table(cellText=data_row_1, loc='center')
+        table.auto_set_font_size(False)
+        table.set_fontsize(9)
         table.scale(1.0, 1.0)
 
         # 自动调整每列宽度以适应内容
@@ -158,12 +177,12 @@ class Report2PdfAll():
         # 手动调整行高
         for (i, j), cell in table.get_celld().items():
             if i == 0:  # Header
-                cell.set_height(0.07)  # 设置表头行高
+                cell.set_height(height_num)  # 设置表头行高
             else:
-                cell.set_height(0.07)  # 设置其他行高
-            cell.set_text_props(ha='left')  # 右对齐
+                cell.set_height(height_num)  # 设置其他行高
+            cell.set_text_props(ha='left')
 
-        plt.subplots_adjust(wspace=1.0, hspace=1.0)  # 全局间距调节
+        plt.subplots_adjust(wspace=0.7, hspace=0.3)  # 全局间距调节
         plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)  # 调整边距
 
         PDF.savefig(bbox_inches='tight', dpi=300)
@@ -232,7 +251,7 @@ class Report2PdfAll():
             #     )
     
     def draw_stat_metrics(self, stat_info, symbol, start_token, end_token, start_quote, end_quote):
-        metrics_balence = {
+        metrics_balance = {
             # balance
             "Starting Balance(U)": f'{symbol["token"]}: {start_token:.3f}; {symbol["quote"]}: {start_quote:.3f}',
             "Ending Balance(U)": f'{symbol["token"]}: {end_token:.3f}; {symbol["quote"]}: {end_quote:.3f}',
@@ -241,9 +260,11 @@ class Report2PdfAll():
             'Total Trading Counts': stat_info["trading_counts"],
             'Daily Trading Counts': stat_info["daily_trading_counts"],
             'Trading Days': stat_info["trading_days"],
-            'Turnover Rate(%)': stat_info["turnover_rate"],
-            'Daily Turnover Rate(%)': stat_info["daily_turnover_rate"],
             'Total Trading Value(U)': stat_info["total_trading_value"],
+            # turnover and profit
+            'Total Gain/Loss without Commiss(U)': stat_info["total_returns"],
+            'Total Commissions(U)': stat_info["total_commissions"],
+            'Total Gain/Loss(U)': end_quote - start_quote,
         }
 
         metrics_nocommissions = {
@@ -271,34 +292,34 @@ class Report2PdfAll():
             'Average Loss Percentage(%)': stat_info["average_loss_percentage_with_commission_with_zero"],
             'Average Returns Percentage(%)': stat_info["average_returns_with_commission_without_zero"],
         }
-        # metrics = {
-        #     # win and loss indicator
-        #     'Without Commissions(win with zero)': '',
-        #     'Win Percentage(%)': stat_info["win_percentage_with_commission_with_zero"],
-        #     'Win Counts': stat_info["win_counts_with_commission_with_zero"],
-        #     'Lose Counts': stat_info["loss_counts_with_commission_without_zero"],
-        #     'Average Win Amount(U)': stat_info["average_win_amount_with_commission_with_zero"],
-        #     'Average Loss Amount(U)': stat_info["average_loss_amount_with_commission_without_zero"],
-        #     'Average Win Percentage(%)': stat_info["average_win_percentage_with_commission_with_zero"],
-        #     'Average Loss Percentage(%)': stat_info["average_loss_percentage_with_commission_without_zero"],
-        #     'Average Returns Percentage(%)': stat_info["average_returns_with_commission_without_zero"],
-        # }
+        metrics = {
+            # win and loss indicator
+            'Without Commissions(win with zero)': '',
+            'Win Percentage(%)': stat_info["win_percentage_with_commission_with_zero"],
+            'Win Counts': stat_info["win_counts_with_commission_with_zero"],
+            'Lose Counts': stat_info["loss_counts_with_commission_without_zero"],
+            'Average Win Amount(U)': stat_info["average_win_amount_with_commission_with_zero"],
+            'Average Loss Amount(U)': stat_info["average_loss_amount_with_commission_without_zero"],
+            'Average Win Percentage(%)': stat_info["average_win_percentage_with_commission_with_zero"],
+            'Average Loss Percentage(%)': stat_info["average_loss_percentage_with_commission_without_zero"],
+            'Average Returns Percentage(%)': stat_info["average_returns_with_commission_without_zero"],
+        }
 
         metrics_return = {
             # net worth value indicator
             'Total Returns(%)': stat_info["total_returns_rate"],
             'Annual Returns(%)': stat_info["annual_returns"],
             'Sharpe Ratio(%)': stat_info["sharpe_ratio"],
+            'Calmar Ratio(%)': stat_info["calmar_ratio"],
             'Maximum Drawdown(U)': stat_info["maxdrawdown"],
             'Max Drawdown Rate(%)': stat_info["maxdrawdown_rate"],
             'Drawdown Interval(h)': stat_info["drawdown_interval"],
-            # turnover and profit
-            'Total Gain/Loss without Commissions(U)': stat_info["total_returns"],
-            'Total Commissions(U)': stat_info["total_commissions"],
-            'Total Gain/Loss(U)': end_quote - start_quote,
+            'Turnover Rate(%)': stat_info["turnover_rate"],
+            'Daily Turnover Rate(%)': stat_info["daily_turnover_rate"],
+            'Sortino Ratio(%)': stat_info["sortino_ratio"],
         }
 
-        return metrics_balence, metrics_nocommissions, metrics_commissions, metrics_return
+        return metrics_balance, metrics_nocommissions, metrics_commissions, metrics_return
     
     def draw_signal(self, signal_list, mode='markers'):
         name_list = signal_list['name']
@@ -443,5 +464,3 @@ if __name__ == "__main__":
     run_dir = "strategystats"
 
     draw_stat_plot(stat_info, test_price_list, test_balance_list, test_net_value_list, test_hedge_list, plot_config, run_dir)
-
-            
