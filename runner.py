@@ -258,16 +258,16 @@ if __name__ == "__main__":
     parser.add_argument('--token', type=str, default="BTC")
     parser.add_argument('--exchange', type=str, default="BINANCE")
     parser.add_argument('--symbol_type', type=str, default="SPOT_NORMAL")
-    parser.add_argument('--start_str', type=str, default="2024-04-03T00:00")
-    parser.add_argument('--end_str', type=str, default="2024-04-21T00:00")
-    parser.add_argument('--strategy_name', type=str, default="taker_stra")  # 'maker' 'taker', taker_stra
+    parser.add_argument('--start_str', type=str, default="2024-11-16T00:00")
+    parser.add_argument('--end_str', type=str, default="2024-11-19T00:00")
+    parser.add_argument('--strategy_name', type=str, default="maker_stra_v2")  # 'maker' 'taker', taker_stra
     parser.add_argument('--is_latency', type=str, default='no')
     parser.add_argument('--stop_win_rate', type=float, default=0.0002)
     parser.add_argument('--stop_loss_rate', type=float, default=0.0001)
-    parser.add_argument('--factor_type', type=str, default="xuefeng_0926")  # 'vinci_reg' 'vinci_cls' 'LobImbalance' 'vinci_maker_label', vinci_mixer_cls
+    parser.add_argument('--factor_type', type=str, default="vinci_maker_label")  # 'vinci_reg' 'vinci_cls' 'LobImbalance' 'vinci_maker_label', vinci_mixer_cls
     parser.add_argument('--order_amount', type=float, default=0.0001)  # 最小下单精度
     parser.add_argument('--set_instrument', type=str, default='no')  # 是否设置精度，初始化某个币对或者修改交易手续费时需要更新
-    parser.add_argument('--save_fold', type=str, default='backtest_0918')  # 结果保存位置
+    parser.add_argument('--save_fold', type=str, default='vinci_maker_label')  # 结果保存位置
     parser.add_argument('--price_interval', type=float, default=1000*60*10)  # price记录间隔（默认1ms）
     parser.add_argument('--stop_loss_taker_threshold', type=float, default=0)  # taker止损阈值
     parser.add_argument('--stop_loss_type', type=str, default='maker')  # 止损类型说明 maker / NONE / taker
@@ -283,15 +283,15 @@ if __name__ == "__main__":
     config['latency_name'] = '_latency' if config['is_latency'] else ''
     
     # 第一个是买入信号的factor，第二个是卖出信号的factor
-    # config['factors'] = ['maker_cls_up_d1', 'maker_cls_down_d1']
-    # config['factor_path'] = '/data/dp-data/vinci_data/ready_for_use/maker_online_32_sample20_onlineckpt_itranFUFMixer_train202406-10_2024-11-16_2024-11-19_20241121/btc_usdt_binance'
+    config['factors'] = ['maker_cls_up_d1', 'maker_cls_down_d1']
+    config['factor_path'] = '/data/dp-data/vinci_data/ready_for_use/maker_online_32_sample20_onlineckpt_itranFUFMixer_train202406-10_2024-11-16_2024-11-19_20241121/btc_usdt_binance'
     # config['factor_path'] = '/efs-data/dp-data/onlinedata/vinci_maker/btc_usdt_binance'
 
     
     # config['factor_path'] = '/data/dp-data/xuefeng_data/ready_for_use/baseline_20240913/20240401_20240630/btc_usdt_binance/'
 
-    config['factors'] = ['SignalModel01']
-    config['factor_path'] = f'/data/dp-data/xuefeng_data/ready_for_use/Test202404_Submit20240926/20240401_20240630/btc_usdt_binance'
+    # config['factors'] = ['SignalModel01']
+    # config['factor_path'] = f'/data/dp-data/xuefeng_data/ready_for_use/Test202404_Submit20240926/20240401_20240630/btc_usdt_binance'
 
     # config['factors'] = ['LobImbalance_0_5']
     # config['factor_path'] = f'/data/dp-data/ModelDatas/2023_07_2024_07/btc_usdt_binance'
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     initlog('./log', log_name, log_level=logging.INFO)
     config['log_name'] = log_name
 
-    freq = 7
+    freq = 1
     for d in pd.date_range(start=start_time, end=end_time+timedelta(days=freq), freq=f'{freq}D'):
         start = d
         end = min(start + timedelta(days=freq), end_time)
@@ -336,7 +336,7 @@ if __name__ == "__main__":
     def run_backtest_process(config):
         run_backtest(config)
 
-    with multiprocessing.Pool(processes=3) as pool:
+    with multiprocessing.Pool(processes=7) as pool:
         results = pool.map(run_backtest_process, parameter_list)
         pool.close()
         pool.join()

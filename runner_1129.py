@@ -85,6 +85,8 @@ def run_backtest(config):
     elif config['factor_type'] == 'xuefeng_0926':
         factors = ['SignalModel01']
     
+    elif config['factor_type'] == 'xuefeng_1016_600s':
+        factors = ['return_predict']
 
     if config['factor_type'] == 'vinci_reg' or config['factor_type'] == 'vinci_cls':
         if config['symbol_type'] == "SPOT_NORMAL":
@@ -138,6 +140,13 @@ def run_backtest(config):
     elif config['factor_type'] == 'xuefeng_0926':
         if config['symbol_type'] == "SPOT_NORMAL":
             factor_path = f'/data/dp-data/xuefeng_data/ready_for_use/Test202404_Submit20240926/20240401_20240630/{asset}_usdt_binance'
+
+        elif config['symbol_type'] == "SWAP_FOREVER":
+            factor_path = f'/data/dp-data/xuefeng_data/ready_for_use/Test202404_Submit20240926/20240401_20240630/{asset}_usdt_binance_perp'
+    
+    elif config['factor_type'] == 'xuefeng_1016_600s':
+        if config['symbol_type'] == "SPOT_NORMAL":
+            factor_path = f'/data/dp-data/xuefeng_data/ready_for_use/600s_stagebaseline_202404_1016/20240401_20240630/{asset}_usdt_binance'
 
         elif config['symbol_type'] == "SWAP_FOREVER":
             factor_path = f'/data/dp-data/xuefeng_data/ready_for_use/Test202404_Submit20240926/20240401_20240630/{asset}_usdt_binance_perp'
@@ -385,15 +394,15 @@ if __name__ == "__main__":
     parser.add_argument('--exchange', type=str, default="BINANCE")
     parser.add_argument('--symbol_type', type=str, default="SPOT_NORMAL")
     parser.add_argument('--start_str', type=str, default="2024-04-02T00:00")
-    parser.add_argument('--end_str', type=str, default="2024-04-4T00:00")
+    parser.add_argument('--end_str', type=str, default="2024-04-30T00:00")
     parser.add_argument('--strategy_name', type=str, default="taker_stra")  # 'maker' 'taker'
     parser.add_argument('--is_latency', type=str, default='no')
     parser.add_argument('--stop_win_rate', type=float, default=0.0002)
     parser.add_argument('--stop_loss_rate', type=float, default=0.0001)
-    parser.add_argument('--factor_type', type=str, default="xuefeng_0926")  # 'vinci_reg' 'vinci_cls' 'LobImbalance' 'vinci_maker_label'
+    parser.add_argument('--factor_type', type=str, default="xuefeng_1016_600s")  # 'vinci_reg' 'vinci_cls' 'LobImbalance' 'vinci_maker_label'
     parser.add_argument('--order_amount', type=float, default=0.0001)  # 最小下单精度
     parser.add_argument('--set_instrument', type=str, default='no')  # 是否设置精度，初始化某个币对或者修改交易手续费时需要更新
-    parser.add_argument('--save_fold', type=str, default='backtest_1129')  # 结果保存位置
+    parser.add_argument('--save_fold', type=str, default='xuefeng_1016_600s')  # 结果保存位置
     parser.add_argument('--price_interval', type=float, default=1000*60*10)  # price记录间隔（默认1ms）
     parser.add_argument('--stop_loss_taker_threshold', type=float, default=0)  # taker止损阈值
     parser.add_argument('--stop_loss_type', type=str, default='maker')  # 止损类型说明 maker / NONE / taker
